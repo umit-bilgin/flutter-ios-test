@@ -1,0 +1,20 @@
+name: webview_cookie_manager
+description: WebView cookie manager for Flutter
+version: 2.0.3
+
+environment:
+  sdk: ">=2.17.0 <4.0.0"
+  flutter: ">=3.0.0"
+
+flutter:
+  plugin:
+    platforms:
+      android:
+        package: io.flutter.plugins.webview_cookie_manager
+        pluginClass: WebviewCookieManagerPlugin
+      ios:
+        pluginClass: WebviewCookieManagerPlugin
+
+dependencies:
+  flutter:
+    sdk: flutter

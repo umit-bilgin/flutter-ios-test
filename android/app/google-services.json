@@ -1,0 +1,67 @@
+{
+  "project_info": {
+    "project_number": "691172671698",
+    "project_id": "beta-bildirim",
+    "storage_bucket": "beta-bildirim.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:691172671698:android:35c6e006f9fff2fb626d0b",
+        "android_client_info": {
+          "package_name": "com.beta.app"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyANJGHFxuoEUIAVad9XGY58kvqeb5i0Fq0"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:691172671698:android:474cb7ac5cc54c5e626d0b",
+        "android_client_info": {
+          "package_name": "com.beta.app.ortak_beta"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyANJGHFxuoEUIAVad9XGY58kvqeb5i0Fq0"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:691172671698:android:0a0ea268f41800da626d0b",
+        "android_client_info": {
+          "package_name": "com.secmarket.app.secmarket"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyANJGHFxuoEUIAVad9XGY58kvqeb5i0Fq0"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
