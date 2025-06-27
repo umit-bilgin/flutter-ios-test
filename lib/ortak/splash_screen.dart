@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'login_page.dart';
-import 'admin_panel.dart';
-import 'satici_panel.dart';
-import 'musteri_panel.dart';
+import '../admin/admin_panel.dart';
+import '../satici/satici_panel.dart';
+import '../musteri/musteri_panel.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:secmarket/hizmet/MyFirebaseMessagingService.dart';
@@ -23,15 +23,15 @@ class _SplashScreenState extends State<SplashScreen> {
   @override
   void initState() {
     super.initState();
-    MyFirebaseMessagingService.init(context); // 🔥 Push sistemi burada devreye giriyor
+  //  MyFirebaseMessagingService.init(context); // 🔥 Push sistemi burada devreye giriyor
 
     // Buraya varsa yönlendirme, gecikme gibi işlemleri de eklersin
-    _initializeNotifications();
-    _setupFirebaseMessaging();
+  //  _initializeNotifications();
+  //  _setupFirebaseMessaging();
     kontrolEt();
   }
 
-  void _initializeNotifications() async {
+  /*void _initializeNotifications() async {
     const AndroidInitializationSettings initializationSettingsAndroid =
     AndroidInitializationSettings('@mipmap/ic_launcher');
 
@@ -83,7 +83,7 @@ class _SplashScreenState extends State<SplashScreen> {
       body,
       platformDetails,
     );
-  }
+  }*/
 
   Future<void> kontrolEt() async {
     await Future.delayed(const Duration(seconds: 2));

@@ -6,7 +6,10 @@ import 'dart:convert';
 import 'satici_profil_sayfasi.dart';
 import 'satici_siparisler_sayfasi.dart';
 import 'satici_musteriler_sayfasi.dart';
-import 'login_page.dart';
+import '../../kampanya/fl_kampanya_listesi.dart';
+import '../../kampanya/fl_kampanya_olustur.dart';
+import '../ortak/login_page.dart';
+
 
 class SaticiPanel extends StatelessWidget {
   const SaticiPanel({super.key});
@@ -47,6 +50,7 @@ class SaticiPanel extends StatelessWidget {
               );
             },
           ),
+
           ListTile(
             leading: const Icon(Icons.people),
             title: const Text('Müşteri Listesi'),
@@ -57,6 +61,42 @@ class SaticiPanel extends StatelessWidget {
               );
             },
           ),
+          ListTile(
+            leading: Icon(Icons.campaign),
+            title: Text('Kampanyalar'),
+            onTap: () {
+              showModalBottomSheet(
+                context: context,
+                builder: (BuildContext context) {
+                  return Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      ListTile(
+                        leading: const Icon(Icons.list),
+                        title: const Text('Kampanyalarım'),
+                        onTap: () {
+                          Navigator.push(context, MaterialPageRoute(
+                            builder: (context) => FlKampanyaListesi(),
+                          ));
+                        },
+                      ),
+                      ListTile(
+                        leading: const Icon(Icons.campaign),
+                        title: const Text('Kampanya Oluştur'),
+                        onTap: () {
+                          Navigator.push(context, MaterialPageRoute(
+                            builder: (context) => FlKampanyaOlustur(),
+                          ));
+                        },
+                      ),
+                    ],
+                  );
+                },
+              );
+            },
+          ),
+
+
           ListTile(
               leading: const Icon(Icons.logout),
               title: const Text('Çıkış Yap'),

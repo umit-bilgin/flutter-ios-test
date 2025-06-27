@@ -53,36 +53,6 @@ class _SaticiMusterilerSayfasiState extends State<SaticiMusterilerSayfasi> {
     }
   }
 
-  /*Future<void> musteriOnayla(String kullaniciId) async {
-    try {
-      print("Onaylanacak kullanıcı ID: $kullaniciId");
-      print("Gönderilen JSON: ${json.encode({'kullanici_id': kullaniciId})}");
-
-      final response = await http.post(
-        Uri.parse('https://yakauretimi.com/api/app_musteri_onayla.php'),
-        headers: {
-          'Content-Type': 'application/json', // BU ZORUNLU
-        },
-        body: json.encode({'kullanici_id': kullaniciId}), // BU ŞEKİLDE JSON GÖNDERİLMELİ
-      );
-
-
-      print("Onaylanacak kullanıcı ID: $kullaniciId");
-
-      final result = json.decode(response.body);
-      if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(result['message'] ?? 'İşlem tamamlandı.')),
-      );
-      await musterileriGetir();
-    } catch (e) {
-      if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Hata oluştu: $e')),
-      );
-    }
-  }*/
-
   Future<void> musteriOnayla(String kullaniciId) async {
     try {
       print("Gönderilen: {'kullanici_id': '$kullaniciId'}");

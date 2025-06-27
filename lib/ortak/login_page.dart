@@ -3,9 +3,9 @@ import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'package:shared_preferences/shared_preferences.dart';
 
-import 'satici_panel.dart';
-import 'musteri_panel.dart';
-import 'admin_panel.dart';
+import '../satici/satici_panel.dart';
+import '../musteri/musteri_panel.dart';
+import '../admin/admin_panel.dart';
 import 'register_page.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 

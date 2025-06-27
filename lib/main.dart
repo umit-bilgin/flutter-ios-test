@@ -2,7 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
-import 'splash_screen.dart';
+import 'ortak/splash_screen.dart';
+import '/siparis/fl_sepet_sayfasi.dart';
 
 // 🔔 Local notification eklentisi
 final FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin =
@@ -78,7 +79,10 @@ class MyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return const MaterialApp(
+    return MaterialApp(
+      routes: {
+        '/fl_sepet_sayfasi': (context) => const FlSepetSayfasi(),
+      },
       debugShowCheckedModeBanner: false,
       home: SplashScreen(),
     );

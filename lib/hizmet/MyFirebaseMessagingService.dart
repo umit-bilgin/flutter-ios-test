@@ -1,10 +1,8 @@
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:flutter/material.dart';
-import '../musteri_panel.dart'; // ← gerektiği gibi import et
-import '../satici_panel.dart';  // ← gerekiyorsa
-import '../login_page.dart';  // ← gerekiyorsa
-import '../splash_screen.dart';  // ← gerekiyorsa
+
+import '../ortak/splash_screen.dart';  // ← gerekiyorsa
 
 class MyFirebaseMessagingService {
   static final FirebaseMessaging _firebaseMessaging = FirebaseMessaging.instance;
@@ -36,6 +34,18 @@ class MyFirebaseMessagingService {
     const InitializationSettings initSettings =
     InitializationSettings(android: androidInit);
 
+    final androidChannel = const AndroidNotificationChannel(
+      'channel_id',
+      'channel_name',
+      description: 'Uygulama bildirim kanalı',
+      importance: Importance.max,
+    );
+
+    // ⬇⬇⬇ BUNU SEN EKLEMEDİN – EKLEMELİSİN
+    await _localNotificationsPlugin
+        .resolvePlatformSpecificImplementation<AndroidFlutterLocalNotificationsPlugin>()
+        ?.createNotificationChannel(androidChannel);
+
     await _localNotificationsPlugin.initialize(
       initSettings,
       onDidReceiveNotificationResponse: (payload) {
@@ -49,10 +59,11 @@ class MyFirebaseMessagingService {
 
   static void _showNotification(RemoteMessage message) async {
     const AndroidNotificationDetails androidDetails = AndroidNotificationDetails(
-      'channel_id',
+      'channel_id', // yukarıdakiyle aynı olmalı
       'channel_name',
       importance: Importance.max,
       priority: Priority.high,
+      playSound: true,
     );
 
     const NotificationDetails platformDetails =
@@ -60,8 +71,8 @@ class MyFirebaseMessagingService {
 
     await _localNotificationsPlugin.show(
       0,
-      message.notification?.title ?? '',
-      message.notification?.body ?? '',
+      message.data['title'] ?? '',
+      message.data['body'] ?? '',
       platformDetails,
       payload: message.data['click_action'] ?? '',
     );
@@ -70,17 +81,16 @@ class MyFirebaseMessagingService {
   static void _handleClickAction(BuildContext context, RemoteMessage message) {
     final String? clickAction = message.data['click_action'];
 
+    if (clickAction == null) return;
+
     if (clickAction == 'musteri_panel') {
-      Navigator.push(
-        context,
-        MaterialPageRoute(builder: (context) => SplashScreen()),
-      );
+      Navigator.push(context, MaterialPageRoute(builder: (context) => SplashScreen()));
     } else if (clickAction == 'satici_panel') {
-      Navigator.push(
-        context,
-        MaterialPageRoute(builder: (context) => SplashScreen()),
-      );
+      Navigator.push(context, MaterialPageRoute(builder: (context) => SplashScreen()));
     }
+
+
     // 🔁 Diğer yönlendirmeler burada eklenebilir
   }
+
 }
