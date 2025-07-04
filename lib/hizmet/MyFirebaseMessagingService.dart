@@ -26,6 +26,12 @@ class MyFirebaseMessagingService {
     FirebaseMessaging.onMessageOpenedApp.listen((RemoteMessage message) {
       _handleClickAction(context, message);
     });
+    // Uygulama ilk bildirimle açıldıysa
+    FirebaseMessaging.instance.getInitialMessage().then((message) {
+      if (message != null) {
+        _handlePushNavigation(context, message.data);
+      }
+    });
 
     // ✅ Local notification init
     const AndroidInitializationSettings androidInit =
@@ -92,5 +98,21 @@ class MyFirebaseMessagingService {
 
     // 🔁 Diğer yönlendirmeler burada eklenebilir
   }
+  static void _handlePushNavigation(BuildContext context, Map<String, dynamic> data) {
+    if (data['click_action'] == 'SIPARIS_OZET' && data['ref'] != null) {
+      Navigator.pushNamed(context, "/musteri_siparis_ozet", arguments: {
+        "ref": data['ref'],
+      });
+    }
+
+    if (data['click_action'] == 'SATICI_SIPARIS_OZET' && data['ref'] != null) {
+      Navigator.pushNamed(context, "/satici_siparis_ozet", arguments: {
+        "ref": data['ref'],
+      });
+    }
+  }
+
+
+
 
 }

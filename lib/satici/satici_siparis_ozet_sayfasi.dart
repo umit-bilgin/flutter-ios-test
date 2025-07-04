@@ -3,18 +3,26 @@ import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:url_launcher/url_launcher.dart';
 
-class MusteriSiparisOzetSayfasi extends StatefulWidget {
+class SaticiSiparisOzetSayfasi extends StatefulWidget {
   final String refKodu;
 
-  const MusteriSiparisOzetSayfasi({super.key, required this.refKodu});
+  const SaticiSiparisOzetSayfasi({super.key, required this.refKodu});
 
   @override
-  State<MusteriSiparisOzetSayfasi> createState() => _MusteriSiparisOzetSayfasiState();
+  State<SaticiSiparisOzetSayfasi> createState() => _SaticiSiparisOzetSayfasiState();
 }
 
-class _MusteriSiparisOzetSayfasiState extends State<MusteriSiparisOzetSayfasi> {
+class _SaticiSiparisOzetSayfasiState extends State<SaticiSiparisOzetSayfasi> {
   Map<String, dynamic>? siparis;
   bool yukleniyor = true;
+  String? seciliDurum;
+
+  final List<String> durumlar = [
+    'Hazırlanıyor',
+    'Kargoya Verildi',
+    'Teslim Edildi',
+    'İptal Edildi',
+  ];
 
   @override
   void initState() {
@@ -35,6 +43,7 @@ class _MusteriSiparisOzetSayfasiState extends State<MusteriSiparisOzetSayfasi> {
         setState(() {
           siparis = data['siparis'];
           yukleniyor = false;
+          seciliDurum = data['siparis']['durum'];
         });
       } else {
         setState(() {
@@ -45,6 +54,26 @@ class _MusteriSiparisOzetSayfasiState extends State<MusteriSiparisOzetSayfasi> {
       setState(() {
         yukleniyor = false;
       });
+    }
+  }
+
+  Future<void> _durumGuncelle(String yeniDurum) async {
+    final response = await http.post(
+      Uri.parse("https://www.yakauretimi.com/sepet/api/fl_sepet_siparis_durum_guncelle_api.php"),
+      headers: {'Content-Type': 'application/json'},
+      body: json.encode({'ref': widget.refKodu, 'yeni_durum': yeniDurum}),
+    );
+
+    if (response.statusCode == 200) {
+      final data = json.decode(response.body);
+      if (data['success']) {
+        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text("Durum güncellendi.")));
+        setState(() {
+          seciliDurum = yeniDurum;
+        });
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(data['message'] ?? "Hata oluştu")));
+      }
     }
   }
 
@@ -63,16 +92,15 @@ class _MusteriSiparisOzetSayfasiState extends State<MusteriSiparisOzetSayfasi> {
     }
 
     final urunler = List<Map<String, dynamic>>.from(siparis!['urunler']['liste']);
-    final String musteriAdi = siparis!['ad'] ?? "-";
-    final String adres = siparis!['adres'] ?? "-";
-    final String telefon = siparis!['telefon'] ?? "-";
-    final String odemeTipi = siparis!['urunler']['odeme_tipi'] ?? "-";
-    final String not = siparis!['urunler']['not'] ?? "-";
-    final double toplam = double.tryParse(siparis!['toplam_tutar'].toString()) ?? 0.0;
-    final String durum = siparis!['durum'] ?? "-";
+    final musteriAdi = siparis!['ad'] ?? "-";
+    final adres = siparis!['adres'] ?? "-";
+    final telefon = siparis!['telefon'] ?? "-";
+    final toplam = double.tryParse(siparis!['toplam_tutar'].toString()) ?? 0.0;
+    final odemeTipi = siparis!['urunler']['odeme_tipi'] ?? "-";
+    final not = siparis!['urunler']['not'] ?? "-";
 
     return Scaffold(
-      appBar: AppBar(title: const Text("Sipariş Özeti")),
+      appBar: AppBar(title: const Text("Sipariş Özeti (Satıcı)")),
       body: Padding(
         padding: const EdgeInsets.all(12.0),
         child: SingleChildScrollView(
@@ -81,13 +109,14 @@ class _MusteriSiparisOzetSayfasiState extends State<MusteriSiparisOzetSayfasi> {
             children: [
               Text("Referans Kodu: ${widget.refKodu.toUpperCase()}", style: const TextStyle(fontWeight: FontWeight.bold)),
               const SizedBox(height: 12),
-              Text("Ad: $musteriAdi"),
+              Text("Müşteri: $musteriAdi"),
               Text("Adres: $adres"),
               GestureDetector(
                 onTap: () => launchUrl(Uri.parse("tel:$telefon")),
                 child: Text("Telefon: $telefon", style: const TextStyle(color: Colors.blue)),
               ),
-              Text("Sipariş Durumu: $durum"),
+              Text("Ödeme Tipi: $odemeTipi"),
+              Text("Not: $not"),
               const Divider(height: 24),
               const Text("Ürünler:", style: TextStyle(fontWeight: FontWeight.bold)),
               const SizedBox(height: 6),
@@ -97,17 +126,27 @@ class _MusteriSiparisOzetSayfasiState extends State<MusteriSiparisOzetSayfasi> {
                 return ListTile(
                   dense: true,
                   contentPadding: EdgeInsets.zero,
-                  title: Text("${u['urun_adi'] ?? 'Ürün'}"),
+                  title: Text(u['urun_adi'] ?? 'Ürün'),
                   subtitle: Text("$adet x ₺${fiyat.toStringAsFixed(2)}"),
                   trailing: Text("₺${(adet * fiyat).toStringAsFixed(2)}"),
                 );
               }).toList(),
               const Divider(height: 24),
-              Text("Not: $not"),
-              Text("Ödeme Tipi: $odemeTipi"),
-              const SizedBox(height: 12),
-              Text("Toplam Tutar: ₺${toplam.toStringAsFixed(2)}",
-                  style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+              Row(
+                children: [
+                  const Text("Sipariş Durumu:", style: TextStyle(fontWeight: FontWeight.bold)),
+                  const SizedBox(width: 12),
+                  DropdownButton<String>(
+                    value: seciliDurum,
+                    items: durumlar.map((d) => DropdownMenuItem(value: d, child: Text(d))).toList(),
+                    onChanged: (String? yeni) {
+                      if (yeni != null) _durumGuncelle(yeni);
+                    },
+                  ),
+                ],
+              ),
+              const SizedBox(height: 20),
+              Text("Toplam Tutar: ₺${toplam.toStringAsFixed(2)}", style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
             ],
           ),
         ),

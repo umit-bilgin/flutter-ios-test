@@ -3,6 +3,8 @@ import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../siparis/fl_siparis_ver_sonuc.dart';
+import '../siparis/widget/sepet_urun_karti.dart';
+import '../siparis/service/sepet_service.dart';
 
 class FlSepetSayfasi extends StatefulWidget {
   const FlSepetSayfasi({super.key});
@@ -16,6 +18,8 @@ class _FlSepetSayfasiState extends State<FlSepetSayfasi> {
   bool loading = true;
   int? kullaniciId;
   double toplamFiyat = 0.0;
+  TextEditingController notController = TextEditingController();
+  String odemeTipi = "Nakit";
 
   @override
   void initState() {
@@ -33,6 +37,10 @@ class _FlSepetSayfasiState extends State<FlSepetSayfasi> {
 
   Future<void> _sepetiGetir() async {
     if (kullaniciId == null) return;
+    setState(() {
+      loading = true;
+    });
+
     final response = await http.post(
       Uri.parse('https://www.yakauretimi.com/sepet/api/fl_sepet_listele_api.php'),
       headers: {'Content-Type': 'application/json'},
@@ -45,18 +53,12 @@ class _FlSepetSayfasiState extends State<FlSepetSayfasi> {
         setState(() {
           sepetUrunleri = veri['sepet'];
           toplamFiyat = _toplamFiyatHesapla();
-          loading = false;
-        });
-      } else {
-        setState(() {
-          loading = false;
         });
       }
-    } else {
-      setState(() {
-        loading = false;
-      });
     }
+    setState(() {
+      loading = false;
+    });
   }
 
   double _toplamFiyatHesapla() {
@@ -71,40 +73,24 @@ class _FlSepetSayfasiState extends State<FlSepetSayfasi> {
 
   Future<void> _adetGuncelle(String productId, int yeniAdet) async {
     if (kullaniciId == null) return;
-    final response = await http.post(
-      Uri.parse('https://www.yakauretimi.com/islemler/fl_urun_adet_guncelle_api.php'),
-      headers: {'Content-Type': 'application/json'},
-      body: json.encode({
-        'kullanici_id': kullaniciId,
-        'urun_id': productId,
-        'adet': yeniAdet, // Mevcut adede ekleme için API'de düzenleme gerekli
-      }),
-    );
-    if (response.statusCode == 200) {
+
+    final basarili = await SepetService.adetGuncelle(kullaniciId!, productId, yeniAdet);
+    if (basarili) {
       await _sepetiGetir();
     }
   }
 
   Future<void> _urunSil(String productId) async {
     if (kullaniciId == null) return;
-    final response = await http.post(
-      Uri.parse('https://www.yakauretimi.com/sepet/api/fl_sepet_urun_sil_api.php'),
-      headers: {'Content-Type': 'application/json'},
-      body: json.encode({
-        'kullanici_id': kullaniciId,
-        'urun_id': productId,
-      }),
-    );
-    if (response.statusCode == 200) {
+
+    final basarili = await SepetService.urunSil(kullaniciId!, productId);
+    if (basarili) {
       await _sepetiGetir();
     }
   }
 
   @override
   Widget build(BuildContext context) {
-    TextEditingController notController = TextEditingController();
-    String odemeTipi = "Nakit";
-
     return Scaffold(
       appBar: AppBar(title: const Text('Sepet')),
       body: Column(
@@ -118,146 +104,113 @@ class _FlSepetSayfasiState extends State<FlSepetSayfasi> {
               itemCount: sepetUrunleri.length,
               itemBuilder: (context, index) {
                 final urun = sepetUrunleri[index];
-                final String? gorsel = urun['image'] != null && urun['image'].toString().isNotEmpty
-                    ? 'https://www.yakauretimi.com/products/${urun['image']}'
-                    : null;
-                final double fiyat = double.tryParse(urun['price']?.toString() ?? urun['fiyat']?.toString() ?? "0") ?? 0.0;
-                final int adet = int.tryParse(urun['adet']?.toString() ?? "1") ?? 1;
+                final urunId = urun['urun_id']?.toString() ?? urun['product_id'].toString();
 
-                return Card(
-                  margin: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                  child: ListTile(
-                    leading: gorsel != null
-                        ? Image.network(gorsel, width: 50, height: 50, fit: BoxFit.cover, errorBuilder: (context, error, stackTrace) {
-                      return const Icon(Icons.image, size: 40, color: Colors.grey);
-                    })
-                        : const Icon(Icons.image, size: 40, color: Colors.grey),
-                    title: Text(urun['title'] ?? urun['urun_adi'] ?? "Ürün adı"),
-                    subtitle: Text("${adet} x ${fiyat.toStringAsFixed(2)} ₺ = ${(adet * fiyat).toStringAsFixed(2)} ₺"),
-                    trailing: Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        IconButton(
-                          icon: const Icon(Icons.remove),
-                          onPressed: () async {
-                            if (adet > 1) {
-                              await _adetGuncelle(urun['urun_id'] ?? urun['product_id'], adet - 1);
-                            }
-                          },
-                        ),
-                        Text('$adet'),
-                        IconButton(
-                          icon: const Icon(Icons.add),
-                          onPressed: () async {
-                            await _adetGuncelle(urun['urun_id'] ?? urun['product_id'], adet + 1);
-                          },
-                        ),
-                        IconButton(
-                          icon: const Icon(Icons.delete),
-                          onPressed: () async {
-                            await _urunSil(urun['urun_id'] ?? urun['product_id']);
-                          },
-                        ),
-                      ],
-                    ),
-                  ),
+                return SepetUrunKarti(
+                  urun: urun,
+                  onAdetGuncelle: (yeniAdet) async {
+                    await _adetGuncelle(urunId, yeniAdet);
+                  },
+                  onUrunSil: () async {
+                    await _urunSil(urunId);
+                  },
                 );
               },
             ),
           ),
-          Padding(
-            padding: const EdgeInsets.all(12),
-            child: Column(
-              children: [
-                Text(
-                  "Toplam Tutar: ₺${toplamFiyat.toStringAsFixed(2)}",
-                  style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-                ),
-                const SizedBox(height: 10),
-                TextField(
-                  controller: notController,
-                  maxLines: 2,
-                  decoration: const InputDecoration(
-                    labelText: "Sipariş Notu",
-                    border: OutlineInputBorder(),
+          if (!loading && sepetUrunleri.isNotEmpty)
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+              child: Column(
+                children: [
+                  Text(
+                    "Toplam Tutar: ₺${toplamFiyat.toStringAsFixed(2)}",
+                    style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
                   ),
-                ),
-              ],
-            ),
-          ),
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 12),
-            child: Row(
-              children: [
-                const Text("Ödeme Tipi: "),
-                DropdownButton<String>(
-                  value: odemeTipi,
-                  items: const [
-                    DropdownMenuItem(value: "Nakit", child: Text("Nakit")),
-                    DropdownMenuItem(value: "Banka Kartı", child: Text("Banka Kartı")),
-                  ],
-                  onChanged: (value) {
-                    if (value != null) {
-                      setState(() {
-                        odemeTipi = value;
-                      });
-                    }
-                  },
-                ),
-              ],
-            ),
-          ),
-          Padding(
-            padding: const EdgeInsets.all(12),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                ElevatedButton(
-                  onPressed: () {
-                    Navigator.pop(context); // Geri
-                  },
-                  child: const Text("Alışverişe Devam Et"),
-                ),
-                ElevatedButton(
-                  onPressed: kullaniciId == null || sepetUrunleri.isEmpty
-                      ? null
-                      : () async {
-                    final response = await http.post(
-                      Uri.parse('https://www.yakauretimi.com/sepet/api/fl_sepet_siparis_ver_api.php'),
-                      headers: {'Content-Type': 'application/json'},
-                      body: json.encode({
-                        'musteri_id': kullaniciId,
-                        'urunler': sepetUrunleri.map((urun) => {
-                          'urun_id': urun['urun_id'],
-                          'adet': urun['adet'],
-                          'fiyat': urun['price'] ?? urun['fiyat'],
-                        }).toList(),
-                        'toplam_tutar': toplamFiyat,
-                        'odeme_tipi': odemeTipi,
-                        'not': notController.text,
-                      }),
-                    );
+                  const SizedBox(height: 10),
+                  TextField(
+                    controller: notController,
+                    maxLines: 2,
+                    decoration: const InputDecoration(
+                      labelText: "Sipariş Notu",
+                      border: OutlineInputBorder(),
+                    ),
+                  ),
+                  const SizedBox(height: 10),
+                  Row(
+                    children: [
+                      const Text("Ödeme Tipi: "),
+                      DropdownButton<String>(
+                        value: odemeTipi,
+                        items: const [
+                          DropdownMenuItem(value: "Nakit", child: Text("Nakit")),
+                          DropdownMenuItem(value: "Banka Kartı", child: Text("Banka Kartı")),
+                        ],
+                        onChanged: (value) {
+                          if (value != null) {
+                            setState(() {
+                              odemeTipi = value;
+                            });
+                          }
+                        },
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 10),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      ElevatedButton(
+                        onPressed: () {
+                          Navigator.pop(context); // Geri
+                        },
+                        child: const Text("Alışverişe Devam Et"),
+                      ),
+                      ElevatedButton(
+                        onPressed: kullaniciId == null || sepetUrunleri.isEmpty
+                            ? null
+                            : () async {
+                          final response = await http.post(
+                            Uri.parse('https://www.yakauretimi.com/sepet/api/fl_sepet_siparis_ver_api.php'),
+                            headers: {'Content-Type': 'application/json'},
+                            body: json.encode({
+                              'musteri_id': kullaniciId,
+                              'urunler': sepetUrunleri.map((urun) => {
+                                'urun_id': urun['urun_id'],
+                                'adet': urun['adet'],
+                                'fiyat': urun['price'] ?? urun['fiyat'],
+                              }).toList(),
+                              'toplam_tutar': toplamFiyat,
+                              'odeme_tipi': odemeTipi,
+                              'not': notController.text,
+                            }),
+                          );
 
-                    final jsonData = jsonDecode(response.body);
-                    if (jsonData['success']) {
-                      if (!context.mounted) return;
-                      Navigator.pushReplacement(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) => FlSiparisVerSonuc(refKodu: jsonData['ref_kodu']),
-                        ),
-                      );
-                    } else {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(content: Text(jsonData['message'] ?? "Bir hata oluştu")),
-                      );
-                    }
-                  },
-                  child: const Text("Siparişi Tamamla"),
-                ),
-              ],
+                          final jsonData = jsonDecode(response.body);
+                          if (jsonData['success']) {
+                            if (!context.mounted) return;
+                            Navigator.pushReplacement(
+                              context,
+                              MaterialPageRoute(
+                                builder: (context) =>
+                                    FlSiparisVerSonuc(refKodu: jsonData['ref']),
+                              ),
+                            );
+                          } else {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              SnackBar(
+                                content: Text(jsonData['message'] ?? "Bir hata oluştu"),
+                              ),
+                            );
+                          }
+                        },
+                        child: const Text("Siparişi Tamamla"),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
             ),
-          ),
         ],
       ),
     );

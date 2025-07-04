@@ -2,8 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:webview_flutter/webview_flutter.dart';
-
 
 class MusteriSiparislerimSayfasi extends StatefulWidget {
   const MusteriSiparislerimSayfasi({super.key});
@@ -19,7 +17,6 @@ class _MusteriSiparislerimSayfasiState extends State<MusteriSiparislerimSayfasi>
     final prefs = await SharedPreferences.getInstance();
     final musteriId = prefs.getString('musteri_id');
     debugPrint("📦 SharedPreferences'tan musteri_id: $musteriId");
-
 
     if (musteriId == null) return;
 
@@ -75,14 +72,9 @@ class _MusteriSiparislerimSayfasiState extends State<MusteriSiparislerimSayfasi>
                     alignment: Alignment.centerRight,
                     child: ElevatedButton(
                       onPressed: () {
-                        final ref = siparis['ref'];
-                        final detayUrl = 'https://www.yakauretimi.com/siparis-detay.php?ref=$ref';
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (context) => WebViewSiparisDetay(url: detayUrl),
-                          ),
-                        );
+                        Navigator.pushNamed(context, "/musteri_siparis_ozet", arguments: {
+                          "ref": ref,
+                        });
                       },
                       child: const Text("Sipariş Detayı"),
                     ),
@@ -96,22 +88,3 @@ class _MusteriSiparislerimSayfasiState extends State<MusteriSiparislerimSayfasi>
     );
   }
 }
-
-class WebViewSiparisDetay extends StatelessWidget {
-  final String url;
-
-  const WebViewSiparisDetay({super.key, required this.url});
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(title: const Text("Sipariş Detayı")),
-      body: WebViewWidget(
-        controller: WebViewController()
-          ..setJavaScriptMode(JavaScriptMode.unrestricted)
-          ..loadRequest(Uri.parse(url)),
-      ),
-    );
-  }
-}
-

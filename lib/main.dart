@@ -3,7 +3,8 @@ import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'ortak/splash_screen.dart';
-import '/siparis/fl_sepet_sayfasi.dart';
+import '../satici/satici_siparis_ozet_sayfasi.dart';
+import '../musteri/musteri_siparis_ozet_sayfasi.dart';
 
 // 🔔 Local notification eklentisi
 final FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin =
@@ -81,7 +82,14 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       routes: {
-        '/fl_sepet_sayfasi': (context) => const FlSepetSayfasi(),
+        '/musteri_siparis_ozet': (context) {
+          final args = ModalRoute.of(context)!.settings.arguments as Map<String, dynamic>;
+          return MusteriSiparisOzetSayfasi(refKodu: args['ref']);
+        },
+        '/satici_siparis_ozet': (context) {
+          final args = ModalRoute.of(context)!.settings.arguments as Map<String, dynamic>;
+          return SaticiSiparisOzetSayfasi(refKodu: args['ref']);
+        },
       },
       debugShowCheckedModeBanner: false,
       home: SplashScreen(),
