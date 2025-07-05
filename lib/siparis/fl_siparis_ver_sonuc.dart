@@ -26,7 +26,11 @@ class FlSiparisVerSonuc extends StatelessWidget {
             const SizedBox(height: 30),
             ElevatedButton.icon(
               onPressed: () {
-                Navigator.pushNamed(context, "/fl_musteri_siparislerim");
+                Navigator.pushNamedAndRemoveUntil(
+                  context,
+                  "/musteri_siparislerim",
+                      (route) => false,
+                );
               },
               icon: const Icon(Icons.list),
               label: const Text("Siparişlerime Git"),
@@ -34,7 +38,11 @@ class FlSiparisVerSonuc extends StatelessWidget {
             const SizedBox(height: 10),
             TextButton.icon(
               onPressed: () {
-                Navigator.pushNamedAndRemoveUntil(context, "/musteri_panel", (route) => false);
+                Navigator.pushNamedAndRemoveUntil(
+                  context,
+                  "/musteri_panel", // Splash'ten yönleniyorsa da olabilir
+                      (route) => false,
+                );
               },
               icon: const Icon(Icons.home),
               label: const Text("Ana Sayfaya Dön"),

@@ -16,30 +16,39 @@ class _SaticiSiparislerSayfasiState extends State<SaticiSiparislerSayfasi> {
 
   Future<void> siparisleriGetir() async {
     final prefs = await SharedPreferences.getInstance();
-    final musteriId = prefs.getString('musteri_id');
-    debugPrint("📦 SharedPreferences'tan musteri_id: $musteriId");
+    final saticiId = prefs.getInt('kullanici_id')?.toString(); // ⚠️ doğru key: kullanici_id
+    debugPrint("📦 SharedPreferences'tan kullanici_id (satıcı): $saticiId");
 
-    if (musteriId == null) return;
+    if (saticiId == null) {
+      debugPrint("⚠️ kullanici_id bulunamadı");
+      return;
+    }
 
     final response = await http.post(
-      Uri.parse('https://www.yakauretimi.com/islemler/fl_musteri_siparislerim_api.php'),
+      Uri.parse('https://www.yakauretimi.com/islemler/fl_satici_gelen_siparisler_api.php'),
       headers: {'Content-Type': 'application/json'},
-      body: json.encode({"kullanici_id": musteriId}),
+      body: json.encode({"kullanici_id": saticiId}), // ⚠️ parametre ismi düzeltildi
     );
 
     if (response.statusCode == 200) {
       final data = json.decode(response.body);
       if (data['success']) {
+        debugPrint("✅ Sipariş verisi alındı");
         setState(() {
           siparisler = data['siparisler'] ?? [];
         });
+      } else {
+        debugPrint("❌ API başarısız: ${data['message']}");
       }
     } else {
+      debugPrint("❌ HTTP hatası: ${response.statusCode}");
       setState(() {
         siparisler = [];
       });
     }
   }
+
+
 
   @override
   void initState() {
@@ -65,12 +74,13 @@ class _SaticiSiparislerSayfasiState extends State<SaticiSiparislerSayfasi> {
       body: ListView.builder(
         itemCount: siparisler.length,
         itemBuilder: (context, index) {
-          final siparis = siparisler[index];
-          final ref = siparis['ref'];
-          final tarih = siparis['tarih'] ?? '';
-          final tutar = siparis['toplam_tutar'] ?? '';
-          final satici = siparis['satici_ad'] ?? 'Satıcı';
-          final saticiTel = siparis['satici_tel'] ?? '';
+          final siparis = siparisler[index]; // ❗️ Eksikti, eklendi
+          final ref = siparis['ref'] ?? '-';
+          final musteriAd = siparis['musteri_ad'] ?? '-';
+          final musteriAdres = siparis['musteri_adres'] ?? '-';
+          final musteriTel = siparis['musteri_tel'] ?? '-';
+          final tarih = siparis['tarih'] ?? '-';
+          final tutar = siparis['toplam_tutar'] ?? '0.00';
 
           return Card(
             margin: const EdgeInsets.all(12),
@@ -80,25 +90,21 @@ class _SaticiSiparislerSayfasiState extends State<SaticiSiparislerSayfasi> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text("🧾 Sipariş No: $ref", style: const TextStyle(fontWeight: FontWeight.bold)),
-                  const SizedBox(height: 4),
+                  Text("👤 Müşteri: $musteriAd"),
+                  Text("📍 Adres: $musteriAdres"),
                   Text("📅 Tarih: $tarih"),
-                  const SizedBox(height: 4),
-                  Text("💳 Tutar: $tutar ₺"),
-                  const SizedBox(height: 4),
-                  Text("🏪 Satıcı: $satici"),
-                  const SizedBox(height: 8),
+                  Text("💳 Tutar: ₺$tutar"),
+                  const SizedBox(height: 6),
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      TextButton.icon(
-                        onPressed: saticiTel.isNotEmpty ? () => _ara(saticiTel) : null,
-                        icon: const Icon(Icons.phone),
-                        label: const Text("Ara"),
+                      GestureDetector(
+                        onTap: () => _ara(musteriTel),
+                        child: Text("📞 Telefon: $musteriTel", style: const TextStyle(color: Colors.blue)),
                       ),
                       ElevatedButton(
                         onPressed: () {
-                          Navigator.pushNamed(context, "/musteri_siparis_ozet", arguments: {
+                          Navigator.pushNamed(context, "/satici_siparis_ozet", arguments: {
                             "ref": ref,
                           });
                         },

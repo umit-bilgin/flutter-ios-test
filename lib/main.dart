@@ -5,6 +5,10 @@ import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'ortak/splash_screen.dart';
 import '../satici/satici_siparis_ozet_sayfasi.dart';
 import '../musteri/musteri_siparis_ozet_sayfasi.dart';
+import '../musteri/musteri_siparislerim.dart';
+import '../musteri/musteri_panel.dart';
+
+import '../siparis/fl_sepet_sayfasi.dart';
 
 // 🔔 Local notification eklentisi
 final FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin =
@@ -84,12 +88,15 @@ class MyApp extends StatelessWidget {
       routes: {
         '/musteri_siparis_ozet': (context) {
           final args = ModalRoute.of(context)!.settings.arguments as Map<String, dynamic>;
-          return MusteriSiparisOzetSayfasi(refKodu: args['ref']);
+          return MusteriSiparisOzetSayfasi(ref: args['ref']);
         },
         '/satici_siparis_ozet': (context) {
           final args = ModalRoute.of(context)!.settings.arguments as Map<String, dynamic>;
-          return SaticiSiparisOzetSayfasi(refKodu: args['ref']);
+          return SaticiSiparisOzetSayfasi(ref: args['ref']);
         },
+        '/fl_sepet_sayfasi': (context) => FlSepetSayfasi(), // ✅ BU EKLENDİ
+        '/musteri_siparislerim': (context) => MusteriSiparislerimSayfasi(),
+        '/musteri_panel': (context) => MusteriPanel(),
       },
       debugShowCheckedModeBanner: false,
       home: SplashScreen(),

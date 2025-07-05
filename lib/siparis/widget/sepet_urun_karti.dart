@@ -81,9 +81,10 @@ class _SepetUrunKartiState extends State<SepetUrunKarti> {
 
   @override
   Widget build(BuildContext context) {
-    final gorsel = widget.urun['image'] != null && widget.urun['image'].toString().isNotEmpty
-        ? 'https://www.yakauretimi.com/products/${widget.urun['image']}'
-        : null;
+    final dynamic gorsel = widget.urun['image'] ?? widget.urun['resim_url'] ?? widget.urun['gorsel'];
+    final bool gorselVar = gorsel != null && gorsel.toString().isNotEmpty && gorsel.toString().toLowerCase() != 'null';
+    final String? gorselUrl = gorselVar ? 'https://www.yakauretimi.com/products/$gorsel' : null;
+
 
     final double fiyat = double.tryParse(widget.urun['price']?.toString() ?? widget.urun['fiyat']?.toString() ?? "0") ?? 0.0;
     final toplamFiyat = (adet * fiyat).toStringAsFixed(2);
@@ -97,9 +98,19 @@ class _SepetUrunKartiState extends State<SepetUrunKarti> {
           children: [
             Row(
               children: [
-                gorsel != null
-                    ? Image.network(gorsel, width: 60, height: 60, fit: BoxFit.cover)
-                    : const Icon(Icons.image, size: 60, color: Colors.grey),
+                ClipRRect(
+                  borderRadius: BorderRadius.circular(8),
+                  child: gorselUrl != null
+                      ? Image.network(
+                    gorselUrl,
+                    width: 60,
+                    height: 60,
+                    fit: BoxFit.cover,
+                    errorBuilder: (_, __, ___) => _defaultIcon(),
+                  )
+                      : _defaultIcon(),
+                ),
+
                 const SizedBox(width: 10),
                 Expanded(
                   child: Column(
@@ -108,6 +119,8 @@ class _SepetUrunKartiState extends State<SepetUrunKarti> {
                       Text(
                         widget.urun['title'] ?? widget.urun['urun_adi'] ?? "Ürün adı",
                         style: const TextStyle(fontWeight: FontWeight.bold),
+                        overflow: TextOverflow.ellipsis,
+                        maxLines: 2,
                       ),
                       const SizedBox(height: 4),
                       Text("$adet x ${fiyat.toStringAsFixed(2)} ₺ = $toplamFiyat ₺"),
@@ -145,6 +158,15 @@ class _SepetUrunKartiState extends State<SepetUrunKarti> {
           ],
         ),
       ),
+    );
+  }
+
+  Widget _defaultIcon() {
+    return Container(
+      width: 60,
+      height: 60,
+      color: Colors.grey.shade200,
+      child: const Icon(Icons.image_not_supported, size: 32, color: Colors.grey),
     );
   }
 }

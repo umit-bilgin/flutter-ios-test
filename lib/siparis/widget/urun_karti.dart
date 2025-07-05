@@ -71,9 +71,11 @@ class _UrunKartiState extends State<UrunKarti> {
     final int stok = widget.urun['in_stock'] ?? 0;
     final double fiyat = double.tryParse(widget.urun['price']?.toString() ?? "0") ?? 0.0;
     final String ad = widget.urun['title']?.toString() ?? "Ürün";
-    final String gorsel = widget.urun['image'] != null && widget.urun['image'].toString().isNotEmpty
-        ? 'https://www.yakauretimi.com/products/${widget.urun['image']}'
-        : '';
+    // Görsel alanı
+    final dynamic gorsel = widget.urun['image'] ?? widget.urun['resim_url'] ?? widget.urun['gorsel'];
+    final bool gorselVar = gorsel != null && gorsel.toString().isNotEmpty && gorsel.toString().toLowerCase() != 'null';
+    final String? gorselUrl = gorselVar ? 'https://www.yakauretimi.com/products/$gorsel' : null;
+
 
     return Card(
       margin: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
@@ -88,20 +90,26 @@ class _UrunKartiState extends State<UrunKarti> {
               children: [
                 // Görsel kısmı
                 Container(
-                  width: 120,
-                  height: 120,
+                  width: 100,
+                  height: 100,
                   decoration: BoxDecoration(
-                    image: gorsel.isNotEmpty
-                        ? DecorationImage(
-                      image: NetworkImage(gorsel),
-                      fit: BoxFit.cover,
-                    )
-                        : null,
-                    color: Colors.grey[300],
+                    color: Colors.grey[200],
+                    borderRadius: BorderRadius.circular(8),
                   ),
-                  child: gorsel.isEmpty
-                      ? const Icon(Icons.image_not_supported, size: 40, color: Colors.grey)
-                      : null,
+                  child: widget.urun['image'] != null &&
+                      widget.urun['image'].toString().isNotEmpty &&
+                      widget.urun['image'].toString().toLowerCase() != "null"
+                      ? ClipRRect(
+                    borderRadius: BorderRadius.circular(8),
+                    child: Image.network(
+                      "https://www.yakauretimi.com/products/${widget.urun['image']}",
+                      fit: BoxFit.cover,
+                      errorBuilder: (context, error, stackTrace) {
+                        return const Icon(Icons.image_not_supported, size: 40, color: Colors.grey);
+                      },
+                    ),
+                  )
+                      : const Icon(Icons.image_not_supported, size: 40, color: Colors.grey),
                 ),
 
                 // Detay kısmı
