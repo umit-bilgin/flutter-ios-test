@@ -17,6 +17,8 @@ class _SaticiSiparisOzetSayfasiState extends State<SaticiSiparisOzetSayfasi> {
   bool yukleniyor = true;
   String? seciliDurum;
   List<dynamic> gecmis = [];
+  String? bilgiMesaji; // ✅ Yeni: Durum mesajı göstermek için
+  Color? bilgiRenk;
 
   final Map<String, String> durumlar = {
     'beklemede': 'Beklemede',
@@ -28,7 +30,7 @@ class _SaticiSiparisOzetSayfasiState extends State<SaticiSiparisOzetSayfasi> {
   @override
   void initState() {
     super.initState();
-    print("🔄 initState çalıştı, veriler getiriliyor...");
+    print("🔄 initState çalıştı");
     _verileriGetir();
     _gecmisGetir();
   }
@@ -41,9 +43,6 @@ class _SaticiSiparisOzetSayfasiState extends State<SaticiSiparisOzetSayfasi> {
       body: json.encode({'ref': widget.ref}),
     );
 
-    print("📦 GET yanıt kodu: ${response.statusCode}");
-    print("📦 Yanıt içeriği: ${response.body}");
-
     if (response.statusCode == 200) {
       final data = json.decode(response.body);
       if (data['success']) {
@@ -52,27 +51,24 @@ class _SaticiSiparisOzetSayfasiState extends State<SaticiSiparisOzetSayfasi> {
           seciliDurum = data['siparis']['durum'];
           yukleniyor = false;
         });
-        print("✅ Sipariş başarıyla yüklendi. Durum: $seciliDurum");
+        print("✅ Sipariş geldi: $seciliDurum");
       } else {
-        print("❌ Başarısız: ${data['message']}");
+        print("❌ Sipariş getirme başarısız: ${data['message']}");
         setState(() => yukleniyor = false);
       }
     } else {
-      print("❌ Sunucu hatası");
+      print("❌ HTTP hatası: ${response.statusCode}");
       setState(() => yukleniyor = false);
     }
   }
 
   Future<void> _gecmisGetir() async {
-    print("📜 Durum geçmişi çekiliyor...");
+    print("📜 Durum geçmişi getiriliyor...");
     final response = await http.post(
-      Uri.parse("https://www.yakauretimi.com/sepet/api/fl_siparis_durum_gecmisi_api.php"),
+      Uri.parse("https://www.yakauretimi.com/islemler/fl_siparis_durum_gecmisi_api.php"),
       headers: {'Content-Type': 'application/json'},
       body: json.encode({'ref': widget.ref}),
     );
-
-    print("📜 GEÇMİŞ yanıt kodu: ${response.statusCode}");
-    print("📜 Geçmiş içeriği: ${response.body}");
 
     if (response.statusCode == 200) {
       final data = json.decode(response.body);
@@ -80,50 +76,53 @@ class _SaticiSiparisOzetSayfasiState extends State<SaticiSiparisOzetSayfasi> {
         setState(() {
           gecmis = data['gecmis'];
         });
-        print("✅ Geçmiş başarıyla yüklendi, ${gecmis.length} kayıt");
+        print("✅ Geçmiş geldi: ${gecmis.length} kayıt");
       } else {
-        print("❌ Geçmiş yüklenemedi: ${data['message']}");
+        print("❌ Geçmiş getirme başarısız: ${data['message']}");
       }
+    } else {
+      print("❌ Geçmiş HTTP hatası: ${response.statusCode}");
     }
   }
 
   Future<void> _durumGuncelle(String yeniDurum) async {
-    print("📤 Durum güncelleme başlatıldı: $yeniDurum");
+    print("📤 Güncelleniyor: $yeniDurum");
+    setState(() {
+      bilgiMesaji = null;
+    });
+
+    print("📜 Durum geçmişi getiriliyor...");
     final response = await http.post(
-      Uri.parse("https://www.yakauretimi.com/sepet/api/fl_sepet_siparis_durum_guncelle_api.php"),
+      Uri.parse("https://www.yakauretimi.com/islemler/fl_siparis_durum_gecmisi_api.php"),
       headers: {'Content-Type': 'application/json'},
-      body: json.encode({'ref': widget.ref, 'yeni_durum': yeniDurum}),
+      body: json.encode({'ref': widget.ref}),
     );
 
-    print("📤 GÜNCELLE yanıt kodu: ${response.statusCode}");
-    print("📤 Yanıt: ${response.body}");
 
     if (response.statusCode == 200) {
       final data = json.decode(response.body);
       if (data['success']) {
-        if (!mounted) return;
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text("✅ '${durumlar[yeniDurum]}' olarak güncellendi.")),
-        );
         setState(() {
           seciliDurum = yeniDurum;
           siparis!['durum'] = yeniDurum;
+          bilgiMesaji = "'${durumlar[yeniDurum]}' olarak güncellendi";
+          bilgiRenk = Colors.green[100];
         });
-        _gecmisGetir();
-        print("✅ Güncelleme tamamlandı.");
+        await _gecmisGetir();
+        print("✅ Güncellendi ve geçmiş yeniden yüklendi.");
       } else {
-        print("❌ API başarısız: ${data['message']}");
-        if (!mounted) return;
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text("❌ ${data['message']}")),
-        );
+        setState(() {
+          bilgiMesaji = "❌ ${data['message']}";
+          bilgiRenk = Colors.red[100];
+        });
+        print("❌ API: ${data['message']}");
       }
     } else {
-      print("❌ HTTP hatası: ${response.statusCode}");
-      if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text("❌ Sunucuya ulaşılamadı")),
-      );
+      setState(() {
+        bilgiMesaji = "❌ Sunucuya ulaşılamadı";
+        bilgiRenk = Colors.red[100];
+      });
+      print("❌ HTTP: ${response.statusCode}");
     }
   }
 
@@ -166,6 +165,7 @@ class _SaticiSiparisOzetSayfasiState extends State<SaticiSiparisOzetSayfasi> {
               Text("📝 Not: $not"),
               Text("💳 Ödeme Tipi: $odemeTipi"),
               const Divider(height: 30),
+
               ...urunler.map((u) {
                 final adet = int.tryParse(u['adet'].toString()) ?? 1;
                 final fiyat = double.tryParse(u['fiyat'].toString()) ?? 0;
@@ -184,16 +184,19 @@ class _SaticiSiparisOzetSayfasiState extends State<SaticiSiparisOzetSayfasi> {
                   subtitle: Text("$adet x ₺${fiyat.toStringAsFixed(2)}"),
                   trailing: Text("₺${(adet * fiyat).toStringAsFixed(2)}"),
                 );
-              }).toList(),
+              }),
 
               const Divider(height: 30),
+
               Row(
                 children: [
                   const Text("📦 Sipariş Durumu:"),
                   const SizedBox(width: 10),
                   DropdownButton<String>(
                     value: seciliDurum,
-                    items: durumlar.entries.map((e) => DropdownMenuItem(value: e.key, child: Text(e.value))).toList(),
+                    items: durumlar.entries
+                        .map((e) => DropdownMenuItem(value: e.key, child: Text(e.value)))
+                        .toList(),
                     onChanged: (yeni) {
                       if (yeni != null && yeni != seciliDurum) {
                         _durumGuncelle(yeni);
@@ -203,18 +206,37 @@ class _SaticiSiparisOzetSayfasiState extends State<SaticiSiparisOzetSayfasi> {
                 ],
               ),
 
+              // ✅ Mesaj kutucuğu
+              if (bilgiMesaji != null)
+                Container(
+                  margin: const EdgeInsets.only(top: 12),
+                  padding: const EdgeInsets.all(10),
+                  decoration: BoxDecoration(
+                    color: bilgiRenk ?? Colors.yellow[100],
+                    borderRadius: BorderRadius.circular(6),
+                  ),
+                  child: Text(
+                    bilgiMesaji!,
+                    style: const TextStyle(fontWeight: FontWeight.w500),
+                  ),
+                ),
+
               const SizedBox(height: 20),
               Text("🧾 Toplam Tutar: ₺${toplam.toStringAsFixed(2)}", style: const TextStyle(fontWeight: FontWeight.bold)),
 
               const SizedBox(height: 30),
               if (gecmis.isNotEmpty) ...[
-                const Text("📜 Durum Geçmişi", style: TextStyle(fontWeight: FontWeight.bold)),
+                const Text("📜 Durum Geçmişi", style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+                const SizedBox(height: 8),
                 ...gecmis.map((g) {
-                  final t = g['tarih'] ?? '';
-                  final o = g['eski_durum'] ?? '-';
-                  final y = g['yeni_durum'] ?? '-';
-                  return Text("📅 $t | $o ➜ $y");
-                }).toList()
+                  final tarih = g['tarih'] ?? '';
+                  final onceki = g['eski_durum'] ?? '-';
+                  final yeni = g['yeni_durum'] ?? '-';
+                  return Padding(
+                    padding: const EdgeInsets.symmetric(vertical: 4),
+                    child: Text("📅 $tarih | $onceki ➜ $yeni"),
+                  );
+                }).toList(),
               ]
             ],
           ),

@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 
 class SepetUrunKarti extends StatefulWidget {
   final Map urun;
-  final Function(int yeniAdet) onAdetGuncelle;
+  final Function(int yeni_adet) onAdetGuncelle;
   final VoidCallback onUrunSil;
 
   const SepetUrunKarti({

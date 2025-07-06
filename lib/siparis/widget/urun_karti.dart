@@ -18,6 +18,13 @@ class UrunKarti extends StatefulWidget {
 class _UrunKartiState extends State<UrunKarti> {
   int adet = 0;
   String? bildirimMesaji;
+  Color _bildirimRenk(String mesaj) {
+    if (mesaj.contains("eklen") || mesaj.contains("güncellendi")) {
+      return Colors.green;
+    } else {
+      return Colors.red;
+    }
+  }
 
   void arttir() {
     setState(() {
@@ -51,7 +58,7 @@ class _UrunKartiState extends State<UrunKarti> {
     final mesaj = await SepetService.sepeteEkle(widget.urun['id'], adet);
 
     setState(() {
-      bildirimMesaji = mesaj;
+      bildirimMesaji = "$mesaj ($adet)";
       adet = 0;
     });
 
@@ -64,6 +71,7 @@ class _UrunKartiState extends State<UrunKarti> {
         });
       }
     });
+
   }
 
   @override
@@ -146,13 +154,13 @@ class _UrunKartiState extends State<UrunKarti> {
               child: Container(
                 padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                 decoration: BoxDecoration(
-                  color: bildirimMesaji!.contains("eklen") ? Colors.green[100] : Colors.red[100],
+                  color: _bildirimRenk(bildirimMesaji!).withOpacity(0.2),
                   borderRadius: BorderRadius.circular(6),
                 ),
                 child: Text(
                   bildirimMesaji!,
                   style: TextStyle(
-                    color: bildirimMesaji!.contains("eklen") ? Colors.green[800] : Colors.red[800],
+                    color: _bildirimRenk(bildirimMesaji!),
                     fontWeight: FontWeight.w500,
                     fontSize: 12,
                   ),

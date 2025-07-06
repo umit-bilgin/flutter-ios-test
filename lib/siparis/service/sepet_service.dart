@@ -20,6 +20,7 @@ class SepetService {
           'kullanici_id': kullaniciId,
           'urun_id': urunId,
           'adet': adet,
+          'mod': 'ekle', // ✅ EKLİYORUZ
         }),
       );
 
