@@ -19,6 +19,7 @@ class MyFirebaseMessagingService {
 
     // 📩 Foreground mesajları
     FirebaseMessaging.onMessage.listen((RemoteMessage message) {
+      print("📲 Foreground bildirimi: ${message.notification?.title}");
       _showNotification(message);
     });
 
@@ -64,25 +65,28 @@ class MyFirebaseMessagingService {
   }
 
   static void _showNotification(RemoteMessage message) async {
+    final title = message.notification?.title ?? message.data['title'] ?? '';
+    final body = message.notification?.body ?? message.data['body'] ?? '';
+
     const AndroidNotificationDetails androidDetails = AndroidNotificationDetails(
-      'channel_id', // yukarıdakiyle aynı olmalı
+      'channel_id',
       'channel_name',
       importance: Importance.max,
       priority: Priority.high,
       playSound: true,
     );
 
-    const NotificationDetails platformDetails =
-    NotificationDetails(android: androidDetails);
+    const NotificationDetails platformDetails = NotificationDetails(android: androidDetails);
 
     await _localNotificationsPlugin.show(
       0,
-      message.data['title'] ?? '',
-      message.data['body'] ?? '',
+      title,
+      body,
       platformDetails,
       payload: message.data['click_action'] ?? '',
     );
   }
+
 
   static void _handleClickAction(BuildContext context, RemoteMessage message) {
     final String? clickAction = message.data['click_action'];

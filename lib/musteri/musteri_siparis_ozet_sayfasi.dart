@@ -90,6 +90,26 @@ class _MusteriSiparisOzetSayfasiState extends State<MusteriSiparisOzetSayfasi> {
                 "Sipariş Durumu: $durum",
                 style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16, color: Colors.black87),
               ),
+              const SizedBox(height: 8),
+              ElevatedButton.icon(
+                onPressed: () async {
+                  setState(() {
+                    yukleniyor = true;
+                  });
+                  await _verileriGetir();
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(content: Text("Sipariş durumu güncellendi")),
+                  );
+                },
+                icon: const Icon(Icons.refresh),
+                label: const Text("Sipariş Durumunu Güncelle"),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.blueGrey,
+                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                ),
+              ),
+
+
               const Divider(height: 24),
               const Text("Ürünler:", style: TextStyle(fontWeight: FontWeight.bold)),
               const SizedBox(height: 6),

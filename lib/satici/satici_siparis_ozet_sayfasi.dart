@@ -24,6 +24,7 @@ class _SaticiSiparisOzetSayfasiState extends State<SaticiSiparisOzetSayfasi> {
     'beklemede': 'Beklemede',
     'onaylandı': 'Onaylandı',
     'hazir_yolda': 'Hazır Yolda',
+    'teslim_edildi': 'Teslim Edildi',
     'iptal': 'İptal',
   };
 
@@ -44,6 +45,11 @@ class _SaticiSiparisOzetSayfasiState extends State<SaticiSiparisOzetSayfasi> {
     );
 
     if (response.statusCode == 200) {
+      if (!response.body.startsWith('{')) {
+        print("❌ JSON dışı veri geldi:\n${response.body}");
+        return;
+      }
+
       final data = json.decode(response.body);
       if (data['success']) {
         setState(() {
@@ -86,45 +92,51 @@ class _SaticiSiparisOzetSayfasiState extends State<SaticiSiparisOzetSayfasi> {
   }
 
   Future<void> _durumGuncelle(String yeniDurum) async {
-    print("📤 Güncelleniyor: $yeniDurum");
-    setState(() {
-      bilgiMesaji = null;
-    });
+    print("📤 Durum güncelleniyor: $yeniDurum");
 
-    print("📜 Durum geçmişi getiriliyor...");
-    final response = await http.post(
-      Uri.parse("https://www.yakauretimi.com/islemler/fl_siparis_durum_gecmisi_api.php"),
+    // 1. GÜNCELLE
+    final guncelleResponse = await http.post(
+      Uri.parse("https://www.yakauretimi.com/islemler/fl_siparis_durum_guncelle_api.php"),
       headers: {'Content-Type': 'application/json'},
-      body: json.encode({'ref': widget.ref}),
+      body: json.encode({'ref': widget.ref, 'yeni_durum': yeniDurum}),
     );
 
+    if (guncelleResponse.statusCode == 200) {
+      print("📥 Giden istek: $widget.ref / $yeniDurum");
+      print("📤 Gelen yanıt: ${guncelleResponse.body}");
+      if (!guncelleResponse.body.startsWith('{')) {
+        print("❌ JSON dışı veri geldi:\n${guncelleResponse.body}");
+        return;
+      }
 
-    if (response.statusCode == 200) {
-      final data = json.decode(response.body);
-      if (data['success']) {
+      final guncelleData = json.decode(guncelleResponse.body);
+      if (guncelleData['success']) {
         setState(() {
           seciliDurum = yeniDurum;
           siparis!['durum'] = yeniDurum;
           bilgiMesaji = "'${durumlar[yeniDurum]}' olarak güncellendi";
           bilgiRenk = Colors.green[100];
         });
+
+        // 2. GEÇMİŞİ GETİR
         await _gecmisGetir();
         print("✅ Güncellendi ve geçmiş yeniden yüklendi.");
       } else {
         setState(() {
-          bilgiMesaji = "❌ ${data['message']}";
+          bilgiMesaji = "❌ ${guncelleData['message']}";
           bilgiRenk = Colors.red[100];
         });
-        print("❌ API: ${data['message']}");
+        print("❌ Güncelleme hatası: ${guncelleData['message']}");
       }
     } else {
       setState(() {
-        bilgiMesaji = "❌ Sunucuya ulaşılamadı";
+        bilgiMesaji = "❌ Güncelleme başarısız (HTTP ${guncelleResponse.statusCode})";
         bilgiRenk = Colors.red[100];
       });
-      print("❌ HTTP: ${response.statusCode}");
+      print("❌ HTTP: ${guncelleResponse.statusCode}");
     }
   }
+
 
   @override
   Widget build(BuildContext context) {
@@ -195,14 +207,21 @@ class _SaticiSiparisOzetSayfasiState extends State<SaticiSiparisOzetSayfasi> {
                   DropdownButton<String>(
                     value: seciliDurum,
                     items: durumlar.entries
-                        .map((e) => DropdownMenuItem(value: e.key, child: Text(e.value)))
+                        .map((e) => DropdownMenuItem<String>(
+                      value: e.key,
+                      child: Text(e.value),
+                    ))
                         .toList(),
                     onChanged: (yeni) {
                       if (yeni != null && yeni != seciliDurum) {
+                        setState(() {
+                          seciliDurum = yeni;
+                        });
                         _durumGuncelle(yeni);
                       }
                     },
                   ),
+
                 ],
               ),
 
