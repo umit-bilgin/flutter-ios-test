@@ -88,15 +88,14 @@ class _UrunKartiState extends State<UrunKarti> {
     return Card(
       margin: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
       clipBehavior: Clip.antiAlias,
-      child: Stack(
-        children: [
-          // Kart içeriği
-          Padding(
-            padding: const EdgeInsets.all(8.0),
-            child: Row(
+      child: Padding(
+        padding: const EdgeInsets.all(8.0),
+        child: Column(
+          children: [
+            Row(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                // Görsel kısmı
+                // 📦 Ürün görseli
                 Container(
                   width: 100,
                   height: 100,
@@ -113,15 +112,18 @@ class _UrunKartiState extends State<UrunKarti> {
                       "https://www.yakauretimi.com/products/${widget.urun['image']}",
                       fit: BoxFit.cover,
                       errorBuilder: (context, error, stackTrace) {
-                        return const Icon(Icons.image_not_supported, size: 40, color: Colors.grey);
+                        return const Icon(Icons.image_not_supported,
+                            size: 40, color: Colors.grey);
                       },
                     ),
                   )
-                      : const Icon(Icons.image_not_supported, size: 40, color: Colors.grey),
+                      : const Icon(Icons.image_not_supported,
+                      size: 40, color: Colors.grey),
                 ),
 
-                // Detay kısmı
                 const SizedBox(width: 8),
+
+                // 📄 Ürün bilgileri ve butonlar
                 Expanded(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
@@ -136,7 +138,16 @@ class _UrunKartiState extends State<UrunKarti> {
                           IconButton(icon: const Icon(Icons.remove), onPressed: azalt),
                           Text('$adet'),
                           IconButton(icon: const Icon(Icons.add), onPressed: arttir),
-                          IconButton(icon: const Icon(Icons.add_shopping_cart), onPressed: sepeteEkle),
+                          const Spacer(),
+                          ElevatedButton.icon(
+                            onPressed: sepeteEkle,
+                            icon: const Icon(Icons.add_shopping_cart),
+                            label: const Text('Sepete Ekle'),
+                            style: ElevatedButton.styleFrom(
+                              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                              textStyle: const TextStyle(fontSize: 16),
+                            ),
+                          ),
                         ],
                       ),
                     ],
@@ -144,32 +155,32 @@ class _UrunKartiState extends State<UrunKarti> {
                 ),
               ],
             ),
-          ),
 
-          // ✅ Bildirim köşeye sabit
-          if (bildirimMesaji != null)
-            Positioned(
-              right: 8,
-              top: 8,
-              child: Container(
-                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+            // 🟠 Alt Bilgilendirme Kutusu
+            if (bildirimMesaji != null) ...[
+              const SizedBox(height: 8),
+              Container(
+                width: double.infinity,
+                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
                 decoration: BoxDecoration(
-                  color: _bildirimRenk(bildirimMesaji!).withOpacity(0.2),
-                  borderRadius: BorderRadius.circular(6),
+                  color: Colors.grey.shade50,
+                  borderRadius: BorderRadius.circular(8),
                 ),
                 child: Text(
                   bildirimMesaji!,
-                  style: TextStyle(
-                    color: _bildirimRenk(bildirimMesaji!),
-                    fontWeight: FontWeight.w500,
-                    fontSize: 12,
+                  style: const TextStyle(
+                    color: Colors.deepOrange,
+                    fontWeight: FontWeight.w600,
                   ),
+                  textAlign: TextAlign.center,
                 ),
               ),
-            ),
-        ],
+            ],
+          ],
+        ),
       ),
     );
+
 
   }
 }
