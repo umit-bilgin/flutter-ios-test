@@ -1,4 +1,4 @@
-name: secmarket
+name: ios
 description: "A new Flutter project."
 # The following line prevents the package from being accidentally published to
 # pub.dev using `flutter pub publish`. This is preferred for private packages.
@@ -16,7 +16,7 @@ publish_to: 'none' # Remove this line if you wish to publish to pub.dev
 # https://developer.apple.com/library/archive/documentation/General/Reference/InfoPlistKeyReference/Articles/CoreFoundationKeys.html
 # In Windows, build-name is used as the major, minor, and patch parts
 # of the product and file versions while build-number is used as the build suffix.
-version: 1.0.0+6
+version: 1.0.0+1
 
 environment:
   sdk: ^3.8.0
@@ -27,21 +27,9 @@ environment:
 # dependencies can be manually updated by changing the version numbers below to
 # the latest version available on pub.dev. To see which dependencies have newer
 # versions available, run `flutter pub outdated`.
-
 dependencies:
   flutter:
     sdk: flutter
-  shared_preferences: ^2.2.2
-  http: ^1.4.0
-  webview_flutter: ^4.2.2
-  # webview_cookie_manager: ^2.0.3
-  firebase_core: ^3.15.2
-  firebase_messaging: ^15.2.10
-  flutter_local_notifications: ^19.3.1
-  flutter_inappwebview: ^6.0.0
-  webview_flutter_android: ^3.10.0
-  image_picker: ^1.1.0
-  url_launcher: ^6.2.6
 
   # The following adds the Cupertino Icons font to your application.
   # Use with the CupertinoIcons class for iOS style icons.
@@ -57,7 +45,6 @@ dev_dependencies:
   # package. See that file for information about deactivating specific lint
   # rules and activating additional ones.
   flutter_lints: ^5.0.0
-
 
 # For information on the generic Dart part of this file, see the
 # following page: https://dart.dev/tools/pub/pubspec
