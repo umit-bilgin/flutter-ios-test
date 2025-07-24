@@ -45,8 +45,6 @@
     <true/>
     <key>UIApplicationSupportsIndirectInputEvents</key>
     <true/>
-
-    <!-- ✅ EKSİKLER BURADA -->
     <key>NSAppTransportSecurity</key>
     <dict>
         <key>NSAllowsArbitraryLoads</key>
