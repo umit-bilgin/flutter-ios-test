@@ -16,6 +16,11 @@ workflows:
       - name: Decode P12 and save to file
         script: |
           echo $CERTIFICATE_P12 | base64 --decode > ios_distribution.p12
+      - name: Decode provisioning profile and install
+        script: |
+          echo $PROVISIONING_PROFILE | base64 --decode > provisioning_profile.mobileprovision
+          mkdir -p ~/Library/MobileDevice/Provisioning\ Profiles
+          cp provisioning_profile.mobileprovision ~/Library/MobileDevice/Provisioning\ Profiles/
       - name: Set up keychain and import certificate
         script: |
           security create-keychain -p "" build.keychain
