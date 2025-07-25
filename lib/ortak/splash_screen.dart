@@ -23,11 +23,11 @@ class _SplashScreenState extends State<SplashScreen> {
   @override
   void initState() {
     super.initState();
-  //  MyFirebaseMessagingService.init(context); // 🔥 Push sistemi burada devreye giriyor
+    //  MyFirebaseMessagingService.init(context); // 🔥 Push sistemi burada devreye giriyor
 
     // Buraya varsa yönlendirme, gecikme gibi işlemleri de eklersin
-  //  _initializeNotifications();
-  //  _setupFirebaseMessaging();
+    //  _initializeNotifications();
+    //  _setupFirebaseMessaging();
     kontrolEt();
   }
 
@@ -86,28 +86,55 @@ class _SplashScreenState extends State<SplashScreen> {
   }*/
 
   Future<void> kontrolEt() async {
-    await Future.delayed(const Duration(seconds: 2));
+    try {
+      await Future.delayed(const Duration(seconds: 2));
 
-    final prefs = await SharedPreferences.getInstance();
-    final rol = prefs.getString('rol');
+      final prefs = await SharedPreferences.getInstance();
+      final rol = prefs.getString('rol');
 
-    if (!mounted) return;
+      if (!mounted) return;
 
-    Widget hedefSayfa;
-    if (rol == 'admin') {
-      hedefSayfa = const AdminPanelPage();
-    } else if (rol == 'satici') {
-      hedefSayfa = const SaticiPanel();
-    } else if (rol == 'musteri') {
-      hedefSayfa = const MusteriPanel();
-    } else {
-      hedefSayfa = const LoginPage();
+      Widget hedefSayfa;
+      if (rol == 'admin') {
+        hedefSayfa = const AdminPanelPage();
+      } else if (rol == 'satici') {
+        hedefSayfa = const SaticiPanel();
+      } else if (rol == 'musteri') {
+        hedefSayfa = const MusteriPanel();
+      } else {
+        hedefSayfa = const LoginPage();
+      }
+
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(builder: (context) => hedefSayfa),
+      );
+    } catch (e, s) {
+      // Hata olursa ekrana log bas ve sade bir hata mesajı göster
+      debugPrint("❌ Splash hata: $e\n$s");
+      if (mounted) {
+        showDialog(
+          context: context,
+          builder: (context) => AlertDialog(
+            title: const Text("Bir hata oluştu"),
+            content: Text(e.toString()),
+            actions: [
+              TextButton(
+                onPressed: () {
+                  Navigator.of(context).pop();
+                  // Varsa login'e gönder
+                  Navigator.pushReplacement(
+                    context,
+                    MaterialPageRoute(builder: (context) => const LoginPage()),
+                  );
+                },
+                child: const Text("Tamam"),
+              ),
+            ],
+          ),
+        );
+      }
     }
-
-    Navigator.pushReplacement(
-      context,
-      MaterialPageRoute(builder: (context) => hedefSayfa),
-    );
   }
 
   @override
