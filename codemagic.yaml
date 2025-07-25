@@ -1,25 +1,52 @@
 workflows:
   ios-build:
-    name: iOS Build
+    name: iOS Build and Firebase Setup
     max_build_duration: 60
     environment:
       flutter: stable
       xcode: latest
       cocoapods: default
+    cache:
+      cache_paths:
+        - $HOME/.pub-cache
+        - ios/Pods
     scripts:
-      - name: Install dependencies
+      # Flutter bağımlılıkları
+      - name: Flutter clean and dependencies
         script: |
+          flutter clean
           flutter pub get
-      - name: Pre-build checks
+
+      # GoogleService-Info.plist kontrol
+      - name: Check GoogleService-Info.plist
         script: |
-          if [ ! -f "ios/Runner/GoogleService-Info.plist" ]; then
+          echo "✅ Checking GoogleService-Info.plist"
+          if [ -f "ios/Runner/GoogleService-Info.plist" ]; then
+            echo "✅ GoogleService-Info.plist bulundu"
+          else
             echo "❌ GoogleService-Info.plist missing!"
             exit 1
           fi
-      - name: Install pods
+
+      # CocoaPods güncelle ve pod install yap
+      - name: Install CocoaPods
         script: |
           cd ios
-          pod install --repo-update
+          pod repo update
+          pod install
           cd ..
+
+      # iOS derlemesi
+      - name: Build iOS IPA
+        script: |
+          flutter build ipa --release --no-codesign
+
     artifacts:
       - build/ios/ipa/*.ipa
+
+    publishing:
+      app_store_connect:
+        apple_id: $APPLE_ID
+        api_key: $APP_STORE_API_KEY
+        issuer_id: $APP_STORE_ISSUER_ID
+        submit_to_testflight: true
