@@ -8,28 +8,26 @@ workflows:
       vars:
         XCODE_WORKSPACE: "Runner.xcworkspace"
         XCODE_SCHEME: "Runner"
-      flutter: stable
-      xcode: latest
     scripts:
-      - name: 📦 Clean and Install Pods
+      - name: Install Flutter dependencies
         script: |
           flutter clean
           flutter pub get
-          cd ios
-          pod repo update
-          pod install
-          cd ..
-      - name: 🔐 Setup Signing
-        script: echo "Using App Store Connect API for signing"
-      - name: 🛠️ Build iOS IPA
-        script: flutter build ipa --release --no-tree-shake-icons
-    artifacts:
-      - build/ios/ipa/*.ipa
+      - name: Decode P12 and save to file
+        script: |
+          echo $CERTIFICATE_P12 | base64 --decode > ios_distribution.p12
+      - name: Set up keychain and import certificate
+        script: |
+          security create-keychain -p "" build.keychain
+          security import ios_distribution.p12 -k ~/Library/Keychains/build.keychain -P "$P12_PASSWORD" -T /usr/bin/codesign
+          security list-keychains -d user -s ~/Library/Keychains/build.keychain
+          security unlock-keychain -p "" ~/Library/Keychains/build.keychain
+      - name: Build iOS IPA
+        script: |
+          flutter build ipa --release --export-options-plist=ios/Runner/ExportOptions.plist
     publishing:
       app_store_connect:
-        apple_id: $APPLE_ID
-        issuer_id: $APP_STORE_ISSUER_ID
-        key_id: $APP_STORE_KEY_ID
         api_key: $APP_STORE_API_KEY
+        key_id: $APP_STORE_KEY_ID
+        issuer_id: $APP_STORE_ISSUER_ID
         submit_to_testflight: true
-        submit_to_app_store: false
