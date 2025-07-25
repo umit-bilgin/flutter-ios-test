@@ -1,52 +1,37 @@
 workflows:
-  ios-build:
-    name: iOS Build and Firebase Setup
+  ios-testflight:
+    name: "iOS TestFlight Build"
     max_build_duration: 60
     environment:
+      groups:
+        - ios-credentials   # Burada senin belirlediğin grup adı olmalı
+      vars:
+        XCODE_WORKSPACE: "Runner.xcworkspace"
+        XCODE_SCHEME: "Runner"
       flutter: stable
       xcode: latest
-      cocoapods: default
-    cache:
-      cache_paths:
-        - $HOME/.pub-cache
-        - ios/Pods
     scripts:
-      # Flutter bağımlılıkları
-      - name: Flutter clean and dependencies
+      - name: 📦 Clean and Install Pods
         script: |
           flutter clean
           flutter pub get
-
-      # GoogleService-Info.plist kontrol
-      - name: Check GoogleService-Info.plist
-        script: |
-          echo "✅ Checking GoogleService-Info.plist"
-          if [ -f "ios/Runner/GoogleService-Info.plist" ]; then
-            echo "✅ GoogleService-Info.plist bulundu"
-          else
-            echo "❌ GoogleService-Info.plist missing!"
-            exit 1
-          fi
-
-      # CocoaPods güncelle ve pod install yap
-      - name: Install CocoaPods
-        script: |
           cd ios
           pod repo update
           pod install
           cd ..
-
-      # iOS derlemesi
-      - name: Build iOS IPA
+      - name: 🔐 Decode and Configure Signing
         script: |
-          flutter build ipa --release --no-codesign
-
+          echo "Apple ID: $APPLE_ID"
+          echo "Setting up signing..."
+      - name: 🛠️ Build iOS
+        script: |
+          flutter build ipa --release --no-tree-shake-icons
     artifacts:
       - build/ios/ipa/*.ipa
-
     publishing:
       app_store_connect:
         apple_id: $APPLE_ID
-        api_key: $APP_STORE_API_KEY
         issuer_id: $APP_STORE_ISSUER_ID
+        api_key: $APP_STORE_API_KEY
         submit_to_testflight: true
+        submit_to_app_store: false
