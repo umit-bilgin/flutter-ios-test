@@ -8,7 +8,6 @@ import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:secmarket/hizmet/MyFirebaseMessagingService.dart';
 
-
 class SplashScreen extends StatefulWidget {
   const SplashScreen({super.key});
 
@@ -20,11 +19,12 @@ class _SplashScreenState extends State<SplashScreen> {
   final FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin =
   FlutterLocalNotificationsPlugin();
 
+  String? _hataMesaji; // Hata olursa burada tutulacak
+
   @override
   void initState() {
     super.initState();
     //  MyFirebaseMessagingService.init(context); // 🔥 Push sistemi burada devreye giriyor
-
     // Buraya varsa yönlendirme, gecikme gibi işlemleri de eklersin
     //  _initializeNotifications();
     //  _setupFirebaseMessaging();
@@ -88,7 +88,6 @@ class _SplashScreenState extends State<SplashScreen> {
   Future<void> kontrolEt() async {
     try {
       await Future.delayed(const Duration(seconds: 2));
-
       final prefs = await SharedPreferences.getInstance();
       final rol = prefs.getString('rol');
 
@@ -110,41 +109,36 @@ class _SplashScreenState extends State<SplashScreen> {
         MaterialPageRoute(builder: (context) => hedefSayfa),
       );
     } catch (e, s) {
-      // Hata olursa ekrana log bas ve sade bir hata mesajı göster
       debugPrint("❌ Splash hata: $e\n$s");
-      if (mounted) {
-        showDialog(
-          context: context,
-          builder: (context) => AlertDialog(
-            title: const Text("Bir hata oluştu"),
-            content: Text(e.toString()),
-            actions: [
-              TextButton(
-                onPressed: () {
-                  Navigator.of(context).pop();
-                  // Varsa login'e gönder
-                  Navigator.pushReplacement(
-                    context,
-                    MaterialPageRoute(builder: (context) => const LoginPage()),
-                  );
-                },
-                child: const Text("Tamam"),
-              ),
-            ],
-          ),
-        );
-      }
+      setState(() {
+        _hataMesaji = "$e\n\n$s";
+      });
     }
   }
 
   @override
   Widget build(BuildContext context) {
-    return const Scaffold(
+    return Scaffold(
       backgroundColor: Colors.white,
       body: Center(
-        child: Text(
+        child: _hataMesaji == null
+            ? const Text(
           'Seç Market',
           style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+        )
+            : Container(
+          color: Colors.red[50],
+          padding: const EdgeInsets.all(20),
+          margin: const EdgeInsets.all(20),
+          child: SingleChildScrollView(
+            child: Text(
+              "⚠️ Bir hata oluştu!\n\n$_hataMesaji",
+              style: const TextStyle(
+                  color: Colors.red,
+                  fontWeight: FontWeight.bold,
+                  fontSize: 15),
+            ),
+          ),
         ),
       ),
     );
